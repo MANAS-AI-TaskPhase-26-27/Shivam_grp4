@@ -65,7 +65,8 @@ ex: Artists who learn to paint in a particular style by studying lots of paintin
 
 
 
-Deep Learning is a subset of machine learning that uses layered neural networks.
+1.0 Deep Learning
+is a subset of machine learning that uses layered neural networks.
 Analogy: teaching a kid about a cat, rather than saying "4 legs + whiskers etc", just show the kid many cat images and teach him.
 
 #Training, Validation and Test Sets
@@ -83,6 +84,54 @@ ans Real-world data is messy, missing values, inconsistent formats, duplicate ro
      Feeding this directly into a model leads to poor or misleading results.
 
 
-A model is only as good as the data it learns from.Handling Missing Data#TechniqueStrategyWhen to Use1DeletionRemove rows with many missing valuesWhen missing data is minimal $< 5\%$ and random2Mean/Median ImputationFill gaps with relevant mean or medianSimple, fast and reliable. Is better if data has outliers3Mode ImputationFill gaps with most frequent categoryCommon for categorical features4Forward / Backward FillUse the previous / next valueTime series Data5Predictive ImputationUse another model to predict missing modelWhen missingness has a pattern6Flagging as MissingCreate a new category for missingWhen absence itself is useful
+
+
+2.0 Handling Outliers
+Outliers are data points that are unusually far from the rest. Might be genuine rare events or errors.
+
+How to handle?
+Remove — if it was error
+Keep it — if genuine
+Use Robust models — Some algorithms are naturally less sensitive to outliers
+
+
+
+3.0 Feature Scaling
+Feature scaling is a data processing technique used to bring different numeric features onto a similar numerical scale.
+Without scaling, the algorithm assumes larger numbers are more important.
+
+Person A: age = 25, Salary = 67000
+Person B: age = 35, Salary = 69000
+
+Acc to ML algorithm:
+Diff in age = 10, Diff in Salary = 2000
+
+Because 2000 is much larger than 10, the model will act as if age barely exists even though a 10 year age gap might be far more significant than a 2000 salary difference.
+
+
+
+4.0 overfitting VS Underfitting
+
+Overlifting: The model learns the training data too well. It performs great on training data but poorly on new data.
+Low training error, high test error
+
+Fix: Get more training data, simplify the model, and Early Stopping (stop training before it starts memorizing).
+
+Underlifting: The model is performing poorly on both training and test data.
+High training error, high test error
+
+Fix: Train longer, add more relevant features
+
+We detect these by comparing Validation/Test accuracy and Training accuracy.
+
+Evaluation Metrics
+How we grade a machine learning model's performance. Because accuracy can lie, we rely on a tool called confusion matrix to see what the model is getting right and wrong.
+
+True Positive: There is fire, and alarm rings
+True Negative: There is no fire, alarm stays mute
+False Positive: No fire, but alarm rings anyways
+False Negative: There is fire, but alarm didn't ring
+
+
 
 
