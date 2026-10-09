@@ -1,0 +1,77 @@
+# logistic regression
+
+%pip install pandas numpy matplotlib
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Load datasets
+train = pd.read_csv("/Users/shivam/Downloads/crime_train.csv")
+test = pd.read_csv("/Users/shivam/Downloads/crime_test.csv")
+
+# Clean (added errors="ignore" to prevent KeyError if a column is missing)
+train = train.drop(columns=["Unnamed: 0", "Num", "case_filed"], errors="ignore")
+test = test.drop(columns=["Unnamed: 0", "Num", "case_filed"], errors="ignore")
+train["weapon"] = train["weapon"].fillna("None")
+test["weapon"] = test["weapon"].fillna("None")
+
+# closed Yes = 1, No = 0
+y_train = (train["closed"] == "Yes").astype(int).values
+y_test = (test["closed"] == "Yes").astype(int).values
+train = train.drop(columns=["closed"], errors="ignore")
+test = test.drop(columns=["closed"], errors="ignore")
+
+# encoding
+text_cols = ["city", "crime_description", "sex", "weapon", "domain"]
+X_train = pd.get_dummies(train, columns=text_cols, dtype=float)
+X_test = pd.get_dummies(test, columns=text_cols, dtype=float)
+X_test = X_test.reindex(columns=X_train.columns, fill_value=0)
+
+# filling missing values
+X_train = X_train.fillna(X_train.median())
+X_test = X_test.fillna(X_train.median())
+
+# Scaling (replaced std 0 with 1.0 to prevent division-by-zero / NaNs)
+mean, std = X_train.mean(), X_train.std()
+std = std.replace(0, 1.0)
+X_train = ((X_train - mean) / std).values
+X_test = ((X_test - mean) / std).values
+
+# sigmoid
+def sigmoid(z):
+    z = np.clip(z, -500, 500)  # prevents numerical overflow
+    return 1 / (1 + np.exp(-z))
+
+# Train with gradient descent
+w = np.zeros(X_train.shape[1])
+b = 0.0
+lr = 0.1
+epochs = 200
+costs = []
+
+for epoch in range(1, epochs + 1):
+    p = sigmoid(X_train @ w + b)             # predicted probability
+    error = p - y_train                      # how wrong we are
+    w = w - lr * (X_train.T @ error / len(y_train))
+    b = b - lr * error.mean()
+
+    # cost (log loss): large when confident and wrong, small when right
+    p = np.clip(p, 1e-9, 1 - 1e-9)
+    cost = -np.mean(y_train * np.log(p) + (1 - y_train) * np.log(1 - p))
+    costs.append(cost)
+
+    # accuracy: probability > 0.5 -> predict "closed"
+    train_acc = np.mean((sigmoid(X_train @ w + b) > 0.5) == y_train) * 100
+    test_acc = np.mean((sigmoid(X_test @ w + b) > 0.5) == y_test) * 100
+    print("Epoch", epoch, "| Cost", round(cost, 4),
+          "| Train acc", round(train_acc, 2), "%",
+          "| Test acc", round(test_acc, 2), "%")
+
+# Plot cost
+plt.figure(figsize=(8, 4))
+plt.plot(costs)
+plt.xlabel("Epoch")
+plt.ylabel("Cost")
+plt.title("Cost vs Epoch")
+plt.savefig("crime_cost_plot.png")  # Fixed invalid /mnt/ path for Mac
+plt.show()  # Displays graph inline in Jupyter
