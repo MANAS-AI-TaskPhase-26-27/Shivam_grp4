@@ -1,0 +1,66 @@
+%pip install pandas numpy matplotlib
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+
+train = pd.read_csv("/Users/shivam/Downloads/train.csv")
+test = pd.read_csv("/Users/shivam/Downloads/test.csv")
+
+
+cols = ["date", "index", "symbols"]
+train = train.drop(columns=cols)
+test = test.drop(columns=cols)
+train = train[train["close"] > 0]
+test = test[test["close"] > 0]
+
+
+medians = train.median()
+train = train.fillna(medians)
+test = test.fillna(medians)
+
+
+X_train = train.drop(columns=["close"])
+X_test = test[X_train.columns]
+y_train = train["close"].values
+y_test = test["close"].values
+
+
+mean, std = X_train.mean(), X_train.std()
+X_train = ((X_train - mean) / std).values
+X_test = ((X_test - mean) / std).values
+
+# gradient descent
+w = np.zeros(X_train.shape[1])
+b = 0.0
+lr = 0.1
+epochs = 500
+costs = []
+
+for epoch in range(1, epochs + 1):
+    error = X_train @ w + b - y_train
+    w = w - lr * (X_train.T @ error / len(y_train))
+    b = b - lr * error.mean()
+
+    cost = (error ** 2).mean() / 2
+    costs.append(cost)
+
+    train_acc = 100 - np.mean(np.abs(error) / y_train) * 100
+    test_error = X_test @ w + b - y_test
+    test_acc = 100 - np.mean(np.abs(test_error) / y_test) * 100
+
+    print("Epoch", epoch, "| Cost", round(cost, 2),
+          "| Train acc", round(train_acc, 2), "%",
+          "| Test acc", round(test_acc, 2), "%")
+
+# on train and test
+train_r2 = 1 - np.sum(error ** 2) / np.sum((y_train - y_train.mean()) ** 2)
+test_r2 = 1 - np.sum(test_error ** 2) / np.sum((y_test - y_test.mean()) ** 2)
+print("Train R2:", round(train_r2, 4), "| Test R2:", round(test_r2, 4))
+
+# Plot cost
+plt.plot(costs)
+plt.xlabel("Epoch")
+plt.ylabel("Cost")
+plt.title("Cost vs Epoch")
+plt.savefig("/mnt/user-data/outputs/cost_plot.png")
